@@ -88,6 +88,21 @@ namespace ОчисткаКэша1с
                     Cache_dataGridView.Rows[dirRowIndex].Tag = cacheDir;
                 }
             }
+
+            foreach (var userCache in _cacheManager.FindCacheDirectoriesSrv())
+            {
+                // Строка с именем пользователя
+                int userRowIndex = Cache_dataGridView.Rows.Add();
+                Cache_dataGridView.Rows[userRowIndex].Cells[0].Value = userCache.UserName;
+
+                // Каталоги пользователя
+                foreach (var cacheDir in userCache.CacheDirectories)
+                {
+                    int dirRowIndex = Cache_dataGridView.Rows.Add();
+                    Cache_dataGridView.Rows[dirRowIndex].Cells[1].Value = cacheDir;
+                    Cache_dataGridView.Rows[dirRowIndex].Tag = cacheDir;
+                }
+            }
         }
 
         // Удаление всех каталогов

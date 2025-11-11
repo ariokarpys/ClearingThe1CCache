@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml.Linq;
 
 namespace ОчисткаКэша1с
 {
@@ -39,6 +40,33 @@ namespace ОчисткаКэша1с
             }
         }
 
+        public IEnumerable<UserCacheInfo> FindCacheDirectoriesSrv()
+        {
+            string systemPath = Path.GetPathRoot(Environment.SystemDirectory);
+
+            UserCacheInfo userCache = new UserCacheInfo { UserName = "Серверный" };
+
+            // Проверяем различные возможные расположения кэша
+            string[] possiblePaths = {
+                Path.Combine(systemPath, "Program Files (x86)", "1cv8", "srvinfo"),
+                Path.Combine(systemPath, "Program Files", "1cv8", "srvinfo"),
+            };
+
+            foreach (string path in possiblePaths)
+            {
+                if (Directory.Exists(path))
+                {
+                    IEnumerable<string> registryDirs = Directory.EnumerateDirectories(path, "reg_*");
+                    foreach (string regDir in registryDirs)
+                    {
+                        userCache.CacheDirectories.AddRange(GetCacheSubdirectories(regDir));
+                    }
+                }
+            }
+
+            yield return userCache;            
+        }
+
         private IEnumerable<string> GetCacheSubdirectories(string parentPath)
         {
             foreach (string directory in Directory.GetDirectories(parentPath))
@@ -47,6 +75,10 @@ namespace ОчисткаКэша1с
 
                 // GUID-подобные имена каталогов (36 символов)
                 if (dirInfo.Name.Contains("-") && dirInfo.Name.Length == 36)
+                {
+                    yield return directory;
+                }
+                else if (dirInfo.Name.StartsWith("snccntx") && dirInfo.Name.Length == 43 && dirInfo.Name.Contains("-"))
                 {
                     yield return directory;
                 }
